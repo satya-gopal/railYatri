@@ -50,8 +50,12 @@ export const ProfilePage: React.FC = () => {
   // (e.g. when navigating from navbar dropdown while already on /profile)
   useEffect(() => {
     const tabFromUrl = searchParams.get('tab') || 'profile';
-    setActiveTab(tabFromUrl);
-  }, [searchParams]);
+    if (user?.role === 'admin') {
+      setActiveTab('profile');
+    } else {
+      setActiveTab(tabFromUrl);
+    }
+  }, [searchParams, user?.role]);
 
 
   // Profile Form State
@@ -286,15 +290,17 @@ export const ProfilePage: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <Tabs
-        tabs={[
-          { id: 'profile', label: 'Profile & Security', icon: <UserIcon className="w-4 h-4" /> },
-          { id: 'passengers', label: 'Saved Passengers', icon: <Users className="w-4 h-4" />, count: passengers.length },
-          { id: 'payment', label: 'Payment Methods', icon: <CreditCard className="w-4 h-4" />, count: paymentMethods.length },
-        ]}
-        activeTab={activeTab}
-        onChange={handleTabChange}
-      />
+      {user?.role !== 'admin' && (
+        <Tabs
+          tabs={[
+            { id: 'profile', label: 'Profile & Security', icon: <UserIcon className="w-4 h-4" /> },
+            { id: 'passengers', label: 'Saved Passengers', icon: <Users className="w-4 h-4" />, count: passengers.length },
+            { id: 'payment', label: 'Payment Methods', icon: <CreditCard className="w-4 h-4" />, count: paymentMethods.length },
+          ]}
+          activeTab={activeTab}
+          onChange={handleTabChange}
+        />
+      )}
 
       {/* TAB 1: Profile & Security */}
       {activeTab === 'profile' && (

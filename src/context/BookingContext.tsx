@@ -7,6 +7,12 @@ import {
   Passenger,
   Booking,
 } from '../types';
+import {
+  STORAGE_KEYS,
+  getFromStorage,
+  setToStorage,
+  removeFromStorage,
+} from '../services/storage';
 
 interface BookingSessionData {
   train: Train | null;
@@ -54,7 +60,17 @@ const initialSession: BookingSessionData = {
 const BookingContext = createContext<BookingContextType | undefined>(undefined);
 
 export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [session, setSession] = useState<BookingSessionData>(initialSession);
+  const [session, setSessionState] = useState<BookingSessionData>(() => {
+    return getFromStorage<BookingSessionData>(STORAGE_KEYS.BOOKING_SESSION, initialSession);
+  });
+
+  const updateSession = (updater: (prev: BookingSessionData) => BookingSessionData) => {
+    setSessionState((prev) => {
+      const next = updater(prev);
+      setToStorage(STORAGE_KEYS.BOOKING_SESSION, next);
+      return next;
+    });
+  };
 
   const setTrainSelection = (params: {
     train: Train;
@@ -65,7 +81,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     quota: Quota;
     fare: number;
   }) => {
-    setSession((prev) => ({
+    updateSession((prev) => ({
       ...prev,
       train: params.train,
       sourceStop: params.sourceStop,
@@ -79,19 +95,20 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const setPassengers = (passengers: Passenger[]) => {
-    setSession((prev) => ({ ...prev, passengers }));
+    updateSession((prev) => ({ ...prev, passengers }));
   };
 
   const setAutoUpgrade = (autoUpgrade: boolean) => {
-    setSession((prev) => ({ ...prev, autoUpgrade }));
+    updateSession((prev) => ({ ...prev, autoUpgrade }));
   };
 
   const setCurrentBooking = (currentBooking: Booking | null) => {
-    setSession((prev) => ({ ...prev, currentBooking }));
+    updateSession((prev) => ({ ...prev, currentBooking }));
   };
 
   const clearBookingSession = () => {
-    setSession(initialSession);
+    removeFromStorage(STORAGE_KEYS.BOOKING_SESSION);
+    setSessionState(initialSession);
   };
 
   return (

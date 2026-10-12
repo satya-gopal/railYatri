@@ -8,6 +8,7 @@ export const STORAGE_KEYS = {
   PAYMENT_METHODS: 'railyatri_payment_methods',
   BOOKINGS: 'railyatri_bookings',
   TRANSACTIONS: 'railyatri_transactions',
+  BOOKING_SESSION: 'railyatri_booking_session',
   INITIALIZED: 'railyatri_initialized_v1',
 } as const;
 

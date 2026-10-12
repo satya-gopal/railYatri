@@ -1,14 +1,43 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Train, Lock, Mail, User, Phone } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { checkPasswordStrength } from '../utils/validators';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 
+interface LocationState {
+  from?: {
+    pathname: string;
+    search?: string;
+  } | string;
+}
+
 export const SignupPage: React.FC = () => {
-  const { signup } = useAuth();
+  const { user, signup } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const state = location.state as LocationState | null;
+  const getRedirectPath = () => {
+    if (!state?.from) return '/';
+    if (typeof state.from === 'string') return state.from;
+    if (typeof state.from === 'object' && state.from.pathname) {
+      return `${state.from.pathname}${state.from.search || ''}`;
+    }
+    return '/';
+  };
+  const from = getRedirectPath();
+
+  useEffect(() => {
+    if (user) {
+      if (user.role === 'admin') {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate(from === '/admin' ? '/' : from, { replace: true });
+      }
+    }
+  }, [user, navigate, from]);
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -48,7 +77,7 @@ export const SignupPage: React.FC = () => {
         confirmPassword,
       });
       if (success) {
-        navigate('/');
+        navigate(from === '/admin' ? '/' : from, { replace: true });
       }
     } finally {
       setIsLoading(false);

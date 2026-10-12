@@ -10,6 +10,7 @@ import { AdminPage } from '../pages/AdminPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { ProtectedRoute } from './ProtectedRoute';
 import { AdminRoute } from './AdminRoute';
+import { CustomerRoute } from './CustomerRoute';
 import App from '../App';
 
 export const router = createBrowserRouter([
@@ -19,7 +20,11 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <HomePage />,
+        element: (
+          <CustomerRoute>
+            <HomePage />
+          </CustomerRoute>
+        ),
       },
       {
         path: 'login',
@@ -31,17 +36,27 @@ export const router = createBrowserRouter([
       },
       {
         path: 'search',
-        element: <SearchResultsPage />,
+        element: (
+          <CustomerRoute>
+            <SearchResultsPage />
+          </CustomerRoute>
+        ),
       },
       {
         path: 'booking',
-        element: <BookingPage />,
+        element: (
+          <CustomerRoute>
+            <BookingPage />
+          </CustomerRoute>
+        ),
       },
       {
         path: 'bookings',
         element: (
           <ProtectedRoute>
-            <MyBookingsPage />
+            <CustomerRoute>
+              <MyBookingsPage />
+            </CustomerRoute>
           </ProtectedRoute>
         ),
       },

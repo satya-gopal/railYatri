@@ -44,7 +44,7 @@ export const Navbar: React.FC = () => {
   const handleResetConfirm = async () => {
     setIsResetModalOpen(false);
     await resetDemoData();
-    navigate('/');
+    navigate(user?.role === 'admin' ? '/admin' : '/');
   };
 
   // Auto-close mobile menu on navigation
@@ -64,15 +64,12 @@ export const Navbar: React.FC = () => {
     };
   }, [isMobileMenuOpen]);
 
-  const navLinks = [
-    { label: 'Book Tickets', href: '/', icon: <Train className="w-4 h-4" /> },
-    { label: 'My Bookings', href: '/bookings', icon: <Ticket className="w-4 h-4" />, authRequired: true },
-    ...(user?.role === 'admin'
-      ? [{ label: 'Admin Portal', href: '/admin', icon: <Shield className="w-4 h-4 text-accent-500" /> }]
-      : []),
-  ];
-
-  console.log(user, "user")
+  const navLinks = user?.role === 'admin'
+    ? [{ label: 'Admin Portal', href: '/admin', icon: <Shield className="w-4 h-4 text-accent-500" /> }]
+    : [
+        { label: 'Book Tickets', href: '/', icon: <Train className="w-4 h-4" /> },
+        { label: 'My Bookings', href: '/bookings', icon: <Ticket className="w-4 h-4" />, authRequired: true },
+      ];
 
   return (
     <>
@@ -80,7 +77,7 @@ export const Navbar: React.FC = () => {
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
+            <Link to={user?.role === 'admin' ? '/admin' : '/'} className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
               <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-primary-700 via-primary-600 to-accent-500 flex items-center justify-center text-white shadow-md shadow-primary-500/20 group-hover:scale-105 transition-transform">
                 <Train className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.2]" />
               </div>
@@ -178,34 +175,35 @@ export const Navbar: React.FC = () => {
                       icon: <UserIcon className="w-4 h-4" />,
                       onClick: () => navigate('/profile?tab=profile'),
                     },
-                    {
-                      id: 'passengers',
-                      label: 'Saved Passengers',
-                      icon: <Users className="w-4 h-4" />,
-                      onClick: () => navigate('/profile?tab=passengers'),
-                    },
-                    {
-                      id: 'payment-methods',
-                      label: 'Payment Methods',
-                      icon: <CreditCard className="w-4 h-4" />,
-                      onClick: () => navigate('/profile?tab=payment'),
-                    },
-                    {
-                      id: 'bookings',
-                      label: 'My Bookings',
-                      icon: <Ticket className="w-4 h-4" />,
-                      onClick: () => navigate('/bookings'),
-                    },
                     ...(user.role === 'admin'
                       ? [
                         {
                           id: 'admin-dash',
-                          label: 'Admin Operations',
+                          label: 'Admin Portal',
                           icon: <Shield className="w-4 h-4 text-accent-500" />,
                           onClick: () => navigate('/admin'),
                         },
                       ]
-                      : []),
+                      : [
+                        {
+                          id: 'passengers',
+                          label: 'Saved Passengers',
+                          icon: <Users className="w-4 h-4" />,
+                          onClick: () => navigate('/profile?tab=passengers'),
+                        },
+                        {
+                          id: 'payment-methods',
+                          label: 'Payment Methods',
+                          icon: <CreditCard className="w-4 h-4" />,
+                          onClick: () => navigate('/profile?tab=payment'),
+                        },
+                        {
+                          id: 'bookings',
+                          label: 'My Bookings',
+                          icon: <Ticket className="w-4 h-4" />,
+                          onClick: () => navigate('/bookings'),
+                        },
+                      ]),
                     {
                       id: 'logout',
                       label: 'Sign Out',
@@ -354,30 +352,38 @@ export const Navbar: React.FC = () => {
                 <p className="px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                   My Account
                 </p>
-                {[
-                  { to: '/profile?tab=profile', label: 'Profile & Account', icon: <UserIcon className="w-4 h-4 text-slate-500" /> },
-                  { to: '/profile?tab=passengers', label: 'Saved Passengers', icon: <Users className="w-4 h-4 text-slate-500" /> },
-                  { to: '/profile?tab=payment', label: 'Payment Methods', icon: <CreditCard className="w-4 h-4 text-slate-500" /> },
-                ].map((item) => (
-                  <Link
-                    key={item.to}
-                    to={item.to}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-                  >
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </Link>
-                ))}
-                {user.role === 'admin' && (
+                <Link
+                  to="/profile?tab=profile"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  <UserIcon className="w-4 h-4 text-slate-500" />
+                  <span>Profile & Account</span>
+                </Link>
+                {user.role === 'admin' ? (
                   <Link
                     to="/admin"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-accent-600 dark:text-accent-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                   >
                     <Shield className="w-4 h-4 text-accent-500" />
-                    <span>Admin Operations</span>
+                    <span>Admin Portal</span>
                   </Link>
+                ) : (
+                  [
+                    { to: '/profile?tab=passengers', label: 'Saved Passengers', icon: <Users className="w-4 h-4 text-slate-500" /> },
+                    { to: '/profile?tab=payment', label: 'Payment Methods', icon: <CreditCard className="w-4 h-4 text-slate-500" /> },
+                  ].map((item) => (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </Link>
+                  ))
                 )}
               </div>
             )}

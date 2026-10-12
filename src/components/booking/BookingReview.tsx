@@ -1,5 +1,6 @@
 import React from 'react';
-import { Train, User, ShieldCheck, ArrowRight, Calendar, CreditCard } from 'lucide-react';
+import { Train, User, ShieldCheck, ArrowRight, Calendar, CreditCard, Lock } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import { useBooking } from '../../context/BookingContext';
 import { formatCurrency, formatDate, getClassName, getQuotaName, getBerthName } from '../../utils/formatters';
 import { calculateFare } from '../../utils/fare';
@@ -16,6 +17,7 @@ export const BookingReview: React.FC<BookingReviewProps> = ({
   onProceedToPayment,
   isLoading = false,
 }) => {
+  const { user } = useAuth();
   const { session } = useBooking();
   const { train, sourceStop, destStop, journeyDate, classType, quota, passengers, autoUpgrade, farePerPassenger } =
     session;
@@ -166,21 +168,30 @@ export const BookingReview: React.FC<BookingReviewProps> = ({
       </div>
 
       {/* Navigation */}
-      <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
         <Button type="button" variant="outline" size="md" onClick={onBack} disabled={isLoading}>
           Edit Passengers
         </Button>
-        <Button
-          type="button"
-          variant="accent"
-          size="lg"
-          onClick={onProceedToPayment}
-          isLoading={isLoading}
-          leftIcon={<CreditCard className="w-5 h-5" />}
-          className="shadow-md shadow-accent-500/20"
-        >
-          Pay {formatCurrency(fareBreakdown.totalFare)}
-        </Button>
+        <div className="flex flex-col sm:items-end gap-1">
+          <Button
+            type="button"
+            variant="accent"
+            size="lg"
+            onClick={onProceedToPayment}
+            isLoading={isLoading}
+            leftIcon={user ? <CreditCard className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+            className="shadow-md shadow-accent-500/20"
+          >
+            {user
+              ? `Pay ${formatCurrency(fareBreakdown.totalFare)}`
+              : `Sign In & Pay ${formatCurrency(fareBreakdown.totalFare)}`}
+          </Button>
+          {!user && (
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 text-center sm:text-right">
+              Sign in is required to generate PNR. Your passenger data is saved.
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

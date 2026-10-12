@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Train, Lock, Mail, UserCheck, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -8,11 +8,12 @@ import { Input } from '../components/ui/Input';
 interface LocationState {
   from?: {
     pathname: string;
-  };
+    search?: string;
+  } | string;
 }
 
 export const LoginPage: React.FC = () => {
-  const { login } = useAuth();
+  const { user, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -22,7 +23,26 @@ export const LoginPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const state = location.state as LocationState | null;
-  const from = state?.from?.pathname || '/';
+  const getRedirectPath = () => {
+    if (!state?.from) return '/';
+    if (typeof state.from === 'string') return state.from;
+    if (typeof state.from === 'object' && state.from.pathname) {
+      return `${state.from.pathname}${state.from.search || ''}`;
+    }
+    return '/';
+  };
+  const from = getRedirectPath();
+
+  // If already logged in, redirect accordingly
+  useEffect(() => {
+    if (user) {
+      if (user.role === 'admin') {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate(from === '/admin' ? '/' : from, { replace: true });
+      }
+    }
+  }, [user, navigate, from]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,9 +54,13 @@ export const LoginPage: React.FC = () => {
     setError(null);
     setIsLoading(true);
     try {
-      const success = await login({ email, password });
-      if (success) {
-        navigate(from, { replace: true });
+      const loggedUser = await login({ email, password });
+      if (loggedUser) {
+        if (loggedUser.role === 'admin') {
+          navigate('/admin', { replace: true });
+        } else {
+          navigate(from === '/admin' ? '/' : from, { replace: true });
+        }
       }
     } finally {
       setIsLoading(false);
@@ -67,6 +91,18 @@ export const LoginPage: React.FC = () => {
 
         {/* Card */}
         <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xl space-y-6">
+          {from.includes('/booking') && (
+            <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-primary-50 dark:bg-primary-950/60 border border-primary-200 dark:border-primary-800 text-xs text-primary-900 dark:text-primary-200">
+              <Train className="w-4 h-4 text-primary-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold">Reservation In Progress</p>
+                <p className="text-primary-700 dark:text-primary-300">
+                  Your selected train and entered passenger details are saved. Log in to continue directly to payment and ticket issuance.
+                </p>
+              </div>
+            </div>
+          )}
+
           {error && (
             <div className="p-3.5 rounded-xl bg-danger-50 dark:bg-danger-950/60 border border-danger-200 dark:border-danger-800 text-danger-700 dark:text-danger-300 text-xs font-medium">
               {error}
@@ -134,7 +170,7 @@ export const LoginPage: React.FC = () => {
 
           <div className="text-center pt-2 text-xs text-slate-500 dark:text-slate-400">
             Don't have an account?{' '}
-            <Link to="/signup" className="text-primary-600 dark:text-primary-400 font-bold hover:underline">
+            <Link to="/signup" state={{ from }} className="text-primary-600 dark:text-primary-400 font-bold hover:underline">
               Create an account
             </Link>
           </div>

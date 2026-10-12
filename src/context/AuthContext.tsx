@@ -21,7 +21,7 @@ import {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (data: LoginFormData) => Promise<boolean>;
+  login: (data: LoginFormData) => Promise<User | null>;
   signup: (data: SignupFormData) => Promise<boolean>;
   logout: () => Promise<void>;
   updateProfile: (data: ProfileFormData) => Promise<boolean>;
@@ -55,16 +55,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     init();
   }, [init]);
 
-  const login = async (data: LoginFormData): Promise<boolean> => {
+  const login = async (data: LoginFormData): Promise<User | null> => {
     const toastId = toast.loading('Authenticating...');
     const res = await apiLogin(data);
     if (res.success && res.data) {
       setUser(res.data);
       toast.success(`Welcome back, ${res.data.name}!`, { id: toastId });
-      return true;
+      return res.data;
     } else {
       toast.error(res.error || 'Login failed', { id: toastId });
-      return false;
+      return null;
     }
   };
 
